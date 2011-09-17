@@ -1,17 +1,6 @@
 <?php
 	
-	/**
-	 * Constants
-	 */
-	
-	$sTemplateFile = 'template.html';
-	$sDBFile       = 'servers.db';
-	$sDBDir        = 'db';
-	$sSchemaFile   = 'schema.sql';
-	
-	/**
-	 * Utility Functions
-	 */
+	require_once "constants.php";
 	
 	/**
 	 * Check The Enviroment
@@ -41,7 +30,9 @@
 			exit("Can not open data file. ($sDBPath)");
 		if (filesize($sDBPath) == 0) {
 			$sQuery = file_get_contents($sSchemaFile);
-			sqlite_query($objSqlite, $sQuery, $sErrMsg);
+			sqlite_query($objSqlite, $sQuery, SQLITE_ASSOC, $sErrMsg);
+			if (!empty($sErrMsg))
+				exit($sErrMsg);
 		}
 		sqlite_close($objSqlite);
 	}
@@ -55,7 +46,6 @@
 <head>
 <link type="text/css" rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/themes/smoothness/jquery-ui.css"/>
 <link type="text/css" rel="stylesheet" href="jqgrid/ui.jqgrid.css"/>
-<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.15/jquery-ui.min.js"></script>
 <script type="text/javascript" src="jqgrid/grid.locale-en.js"></script>

@@ -1,10 +1,19 @@
+var callbackAfterSubmitForm = function(response, postData, formId) {
+  if (response.responseText != 'OK') {
+    if (response.responseText.length > 50)
+      alert('Error Occurs');
+    else
+      alert(response.responseText);
+  }
+}
+
 page$ = {
   grid_properties: {
     colModel: [
       {
-        label:     'Server IP',
-        name:      'ip',
-        index:     'ip',
+        label:     'Host',
+        name:      'host',
+        index:     'host',
         align:     'center',
         width:     150,
         hidden:    false,
@@ -17,6 +26,7 @@ page$ = {
           disabled:  false
         },
         editrules: {
+          required:   true,
           edithidden: true
         }
       },
@@ -32,10 +42,12 @@ page$ = {
         edittype:  'text',
         formatter: 'none',
         editoptions: {
-          maxlength: 100,
-          disabled:  false
+          defaultValue: 1433,
+          maxlength:    10,
+          disabled:     false
         },
         editrules: {
+          number:     true,
           edithidden: true
         }
       },
@@ -55,13 +67,14 @@ page$ = {
           disabled:  false
         },
         editrules: {
+          required:   true,
           edithidden: true
         }
       },
       {
         label:     'Password',
-        name:      'password',
-        index:     'password',
+        name:      'pass',
+        index:     'pass',
         align:     'center',
         width:     100,
         hidden:    true,
@@ -86,29 +99,42 @@ page$ = {
         hidden:    true,
         sortable:  false,
         editable:  true,
-        edittype:  'password',
+        edittype:  'text',
         formatter: 'none',
         editoptions: {
           maxlength: 100,
           disabled:  false
         },
         editrules: {
+          required:   true,
           edithidden: true
         }
       },
       {
         label:    'Updated Time',
-        name:     'update_date',
-        index:    'update_date',
-        width:    150,
+        name:     'updated',
+        index:    'updated',
+        width:    200,
         align:    'center',
         sortable: true
+      },
+      {
+        label:     'Enabled',
+        name:      'enabled',
+        index:     'enabled',
+        align:     'center',
+        width:     100,
+        hidden:    false,
+        sortable:  true,
+        editable:  true,
+        edittype:  'checkbox',
+        formatter: 'checkbox'
       }
     ],
-    url:         'servers.json',
+    url:         'servers.php',
     datatype:    'json',
     caption:     'Server List',
-    sortname:    'update_date',
+    sortname:    'updated',
     sortorder:   'desc',
     rowNum:      10,
     rowList:     [10, 20, 30, 40, 50, 100],
@@ -121,18 +147,10 @@ page$ = {
     onSelectRow: function(rowId, status) {
     },
     ondblClickRow: function(rowId) {
-      /*
-      var imageUrl = $(this).jqGrid('getCell', rowId, 'imageUrl');
-      $(this).jqGrid('setColProp', 'imageUrl', {
-        editoptions: {
-          style: 'max-height:100px',
-          src: imageUrl
-        }
-      });
       $(this).jqGrid('editGridRow', rowId, {
-        url:               '/admin/channel/modify',
-        caption:           'Edit Channel Meta',
-        width:             'auto',
+        url:               'servers.php',
+        caption:           'Edit Server Info',
+        width:             400,
         top:               $(window).scrollTop() + 50, // $(this).offset().top - 50,
         left:              200, // $(this).offset().left + $(this).width() + 20,
         modal:             false,
@@ -143,24 +161,13 @@ page$ = {
         viewPagerButtons:  true,
         recreateForm:      true,
         beforeCheckValues: function(postData, formId, mode) {
-          postData['imageUrl'] = $('#imageUrl', formId).attr('src');
-          return postData;
         },
         beforeShowForm: function(formId) {
-          $('#imageUrl', formId).click(function() {
-            var imageUrl = prompt('Please enter new image URL', $(this).attr('src'));
-            if (imageUrl != null) {
-              $(this).attr('src', imageUrl);
-            }
-          });
         },
         afterclickPgButtons: function(whichButton, formId, rowId) {
-          var imageUrl = $('#chn_table').jqGrid('getCell', rowId, 'imageUrl');
-          $('#imageUrl', formId).attr('src', imageUrl);
         },
-        afterComplete: utils.callbackAfterSubmitForm
+        afterComplete: callbackAfterSubmitForm
       });
-      */
     }
   },
   init: function() {
