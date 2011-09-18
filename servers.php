@@ -30,6 +30,12 @@
 		$sPass  = getreq('pass', true, true, true);
 		$sPath  = getreq('path', true, true, true);
 		$bEnabled = getreq('enabled') ? 1 : 0;
+		
+		$sQuery = "SELECT count(rowid) FROM servers WHERE host='$sHost' AND port='$iPort' AND user='$sUser' AND rowid!='$iRowId'";
+		$arrResult = sqlite_query_and_fetch_array($sQuery);
+		if ($arrResult[0] > 0)
+			exit("Duplicated");
+		
 		$sQuery = "UPDATE servers SET host='$sHost', port='$iPort', " .
 		          "user='$sUser', pass='$sPass', path='$sPath', enabled='$bEnabled', " .
 		          "updated=datetime('now')" .
@@ -43,11 +49,7 @@
 		exit('OK');
 	default:
 		$iPage = getreq('page', true);
-		if (empty($iPage))
-			exit("Parameter 'page'");
 		$iRowsPerPage = getreq('rows', true);
-		if (empty($iRowsPerPage))
-			exit("Parameter 'rows'");
 		$sSorting = trim(getreq('sidx') . " " . getreq('sord'));
 		
 		$sQuery = "SELECT count(rowid) FROM servers";

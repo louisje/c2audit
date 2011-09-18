@@ -16,3 +16,6 @@ Files Description:
 
  * README.txt - what you are reading
  * db/ - data file folder (should be writable)
+
+Schema Description:
+ * servers

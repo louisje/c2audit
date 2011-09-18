@@ -1,3 +1,7 @@
+/**
+ * Main
+ */
+
 var callbackAfterSubmitForm = function(response, postData, formId) {
   if (response.responseText != 'OK') {
     if (response.responseText.length > 50)
@@ -8,7 +12,103 @@ var callbackAfterSubmitForm = function(response, postData, formId) {
 }
 
 page$ = {
-  grid_properties: {
+  subgridProperties: {
+    colModel: [
+      {
+        label:     'Server ID',
+        name:      'serverid',
+        index:     'serverid',
+        align:     'center',
+        width:     200,
+        hidden:    true,
+        sortable:  true,
+        editable:  false,
+        edittype:  'text',
+        formatter: 'none',
+        editoptions: {
+          maxlength: 100,
+          disabled:  true
+        },
+        editrules: {
+          number:     true,
+          required:   true,
+          edithidden: true
+        }
+      },
+      {
+        label:     'Event ID',
+        name:      'eventid',
+        index:     'eventid',
+        align:     'center',
+        width:     200,
+        hidden:    false,
+        sortable:  true,
+        editable:  true,
+        edittype:  'text',
+        formatter: 'none',
+        editoptions: {
+          maxlength: 100,
+          disabled:  false
+        },
+        editrules: {
+          number:     true,
+          required:   true,
+          edithidden: true
+        }
+      },
+      {
+        label:     'Column ID',
+        name:      'columnid',
+        index:     'columnid',
+        align:     'center',
+        width:     200,
+        hidden:    false,
+        sortable:  true,
+        editable:  true,
+        edittype:  'text',
+        formatter: 'none',
+        editoptions: {
+          maxlength: 100,
+          disabled:  false
+        },
+        editrules: {
+          number:     true,
+          required:   true,
+          edithidden: true
+        }
+      },
+      {
+        label:     'Enabled',
+        name:      'enabled',
+        index:     'enabled',
+        align:     'center',
+        width:     100,
+        hidden:    false,
+        sortable:  true,
+        editable:  true,
+        edittype:  'checkbox',
+        formatter: 'checkbox',
+        editoptions: {
+          value: '1:0'
+        }
+      }
+    ],
+    datatype:    'json',
+    caption:     'Trace Properties',
+    sortname:    'eventid',
+    sortorder:   'asc',
+    rowNum:      10,
+    rowList:     [10, 20, 30, 40, 50, 100],
+    viewrecords: true,
+    height:      'auto',
+    hidegrid:    false,
+    toppager:    true,
+    gridComplete: function() {
+    },
+    onSelectRow: function(rowId, status) {
+    }
+  },
+  gridProperties: {
     colModel: [
       {
         label:     'Host',
@@ -152,7 +252,7 @@ page$ = {
     ondblClickRow: function(rowId) {
       $(this).jqGrid('editGridRow', rowId, {
         url:               'servers.php',
-        caption:           'Edit Server Info',
+        editCaption:       'Edit Server Info',
         width:             400,
         top:               $(window).scrollTop() + 50,
         left:              150,
@@ -173,8 +273,85 @@ page$ = {
       });
     }
   },
+  initSubgrid: function(subgridId, parentRowId) {
+    var subgridTableId = subgridId + '_t';
+    var subgridTableSelector = '#' + subgridTableId;
+    var subgridSelector = '#' + subgridId;
+    var subgridProperties = page$.subgridProperties;
+    var traceUrl = 'trace.php?serverid=' + parentRowId;
+
+    $(subgridSelector).html('<table id="' + subgridTableId + '" class="scroll"></table>');
+    $(subgridSelector).attr('style', 'padding: 5px 5px 5px 5px');
+
+    subgridProperties.url = traceUrl;
+    subgridProperties.ondblClickRow = function(subRowId) {
+      $(this).jqGrid('editGridRow', subRowId, {
+        url:               traceUrl,
+        editCaption:       'Edit A Trace Property',
+        width:             400,
+        top:               $(window).scrollTop() + 50,
+        left:              150,
+        modal:             false,
+        jqModal:           true,
+        closeAfterEdit:    true,
+        closeOnEscape:     true,
+        reloadAfterSubmit: true,
+        viewPagerButtons:  true,
+        recreateForm:      true,
+        afterComplete:     callbackAfterSubmitForm,
+        beforeCheckValues: function(postData, formId, mode) {
+        },
+        beforeShowForm: function(formId) {
+          $('#tr_serverid').hide();
+          //$('#serverid', formId).val(parentRowId);
+        }
+      });
+    };
+    $(subgridTableSelector).jqGrid(subgridProperties);
+    $(subgridTableSelector).jqGrid('navGrid', subgridTableSelector + '_toppager', {
+      edit:     false,
+      add:      true,
+      del:      true,
+      search:   false,
+      view:     false,
+      addtitle: 'Add A New Trace',
+      deltitle: 'Remove A Trace'
+    }, { }, {
+      // 'add' properties
+      url:               traceUrl,
+      addCaption:        'Add A New Trace',
+      width:             '400',
+      top:               $(window).scrollTop() + 50,
+      left:              150,
+      modal:             false,
+      jqModal:           true,
+      closeAfterAdd:     true,
+      closeOnEscape:     true,
+      reloadAfterSubmit: true,
+      recreateForm:      true,
+      afterComplete:     callbackAfterSubmitForm,
+      beforeShowForm: function(formId) {
+        $('#tr_serverid').hide();
+      }
+    }, {
+      // 'del' properties
+      url:               traceUrl,
+      caption:           'Remove A Trace',
+      msg:               'Do you want to remove this trace from list ?',
+      width:             '400',
+      top:               $(window).scrollTop() + 50,
+      left:              150,
+      modal:             false,
+      jqModal:           true,
+      closeOnEscape:     true,
+      reloadAfterSubmit: true,
+      afterComplete:     callbackAfterSubmitForm,
+    });
+  },
   init: function() {
-    $('#server_list').jqGrid(page$.grid_properties);
+    page$.gridProperties.subGridRowExpanded = page$.initSubgrid;
+    page$.gridProperties.subGrid = true;
+    $('#server_list').jqGrid(page$.gridProperties);
     $('#server_list').jqGrid('navGrid', '#server_list_toppager', {
       edit:     false,
       add:      true,
@@ -182,7 +359,7 @@ page$ = {
       search:   false,
       view:     false,
       addtitle: 'Add A New Server',
-      deltitle: 'Remove a Server'
+      deltitle: 'Remove A Server'
     }, { }, {
       // 'add' properties
       url:               'servers.php',
