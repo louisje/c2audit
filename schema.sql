@@ -1,5 +1,5 @@
-CREATE TABLE servers (rowid INTEGER PRIMARY KEY, host, port, user, pass, path, updated, enabled);
-CREATE TABLE trace (rowid INTEGER PRIMARY KEY, serverid, eventid, columnid, enabled);
+CREATE TABLE servers (rowid INTEGER PRIMARY KEY, host, port INTEGER, user, pass, path, updated, enabled BOOLEAN);
+CREATE TABLE trace (rowid INTEGER PRIMARY KEY, serverid INTEGER, eventid INTEGER, columnid INTEGER, enabled BOOLEAN);
 --
 --INSERT INTO "servers" VALUES (NULL, "192.168.82.187", NULL, "sa", "launchteltel", "c:\\ossim", datetime("now"), 0);
 --

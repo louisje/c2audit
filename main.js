@@ -15,7 +15,7 @@ page$ = {
         name:      'host',
         index:     'host',
         align:     'center',
-        width:     150,
+        width:     200,
         hidden:    false,
         sortable:  true,
         editable:  true,
@@ -35,7 +35,7 @@ page$ = {
         name:      'port',
         index:     'port',
         align:     'center',
-        width:     50,
+        width:     100,
         hidden:    false,
         sortable:  true,
         editable:  true,
@@ -56,7 +56,7 @@ page$ = {
         name:      'user',
         index:     'user',
         align:     'center',
-        width:     100,
+        width:     150,
         hidden:    false,
         sortable:  true,
         editable:  true,
@@ -163,25 +163,26 @@ page$ = {
         reloadAfterSubmit: true,
         viewPagerButtons:  true,
         recreateForm:      true,
+        afterComplete:     callbackAfterSubmitForm,
         beforeCheckValues: function(postData, formId, mode) {
         },
         beforeShowForm: function(formId) {
         },
         afterclickPgButtons: function(whichButton, formId, rowId) {
-        },
-        afterComplete: callbackAfterSubmitForm
+        }
       });
     }
   },
   init: function() {
     $('#server_list').jqGrid(page$.grid_properties);
     $('#server_list').jqGrid('navGrid', '#server_list_toppager', {
-      edit:   false,
-      add:    true,
-      del:    false,
-      search: false,
-      view:   false,
-      addtitle: 'Add A New Server'
+      edit:     false,
+      add:      true,
+      del:      true,
+      search:   false,
+      view:     false,
+      addtitle: 'Add A New Server',
+      deltitle: 'Remove a Server'
     }, { }, {
       // 'add' properties
       url:               'servers.php',
@@ -195,9 +196,22 @@ page$ = {
       closeOnEscape:     true,
       reloadAfterSubmit: true,
       recreateForm:      true,
+      afterComplete:     callbackAfterSubmitForm,
       beforeShowForm: function(formId) {
-      },
-      afterComplete: callbackAfterSubmitForm
+      }
+    }, {
+      // 'del' properties
+      url:               'servers.php',
+      caption:           'Remove A Server',
+      msg:               'Do you want to remove this server from list ?',
+      width:             '400',
+      top:               $(window).scrollTop() + 50,
+      left:              150,
+      modal:             false,
+      jqModal:           true,
+      closeOnEscape:     true,
+      reloadAfterSubmit: true,
+      afterComplete:     callbackAfterSubmitForm,
     });
   }
 };

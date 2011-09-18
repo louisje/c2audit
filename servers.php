@@ -2,59 +2,57 @@
 	
 	require_once "common.php";
 	
-	$objSqlite = sqlite_open($cfgDBPath);
-	if ($objSqlite == FALSE)
-		exit("Can not open data file.");
-	
-	switch(@$_REQUEST['oper']) {
+	switch(getreq('oper')) {
 	case 'add':
-		$sHost = sqlite_escape_string($_REQUEST['host']);
-		$iPort = sqlite_escape_string($_REQUEST['port']);
-		$sUser = sqlite_escape_string($_REQUEST['user']);
-		$sPass = sqlite_escape_string($_REQUEST['pass']);
-		$sPath = sqlite_escape_string($_REQUEST['path']);
-		$bEnabled = sqlite_escape_string($_REQUEST['enabled']);
+		$sHost = getreq('host', true, true, true);
+		$iPort = getreq('port', true, true, true);
+		$sUser = getreq('user', true, true, true);
+		$sPass = getreq('pass', true, true, true);
+		$sPath = getreq('path', true, true, true);
+		$bEnabled = getreq('enabled') ? 1 : 0;
 		
 		$sQuery = "SELECT count(rowid) FROM servers WHERE host='$sHost' AND port='$iPort' AND user='$sUser'";
 		$arrResult = sqlite_query_and_fetch_array($sQuery);
 		if ($arrResult[0] > 0)
 			exit("Aready Exists");
 		
+		// TODO: to check the server connectivitive
+		
 		$sQuery = "INSERT INTO servers (host, port, user, pass, path, updated, enabled) " .
 		          "VALUES ('$sHost', '$iPort', '$sUser', '$sPass', '$sPath', datetime('now'), '$bEnabled')";
-		sqlite_query($objSqlite, $sQuery);
+		sqlite_query_only($sQuery);
 		exit('OK');
 	case 'edit':
-		$iRowId = sqlite_escape_string($_REQUEST['id']);
-		$sHost  = sqlite_escape_string($_REQUEST['host']);
-		$iPort  = sqlite_escape_string($_REQUEST['port']);
-		$sUser  = sqlite_escape_string($_REQUEST['user']);
-		$sPass  = sqlite_escape_string($_REQUEST['pass']);
-		$sPath  = sqlite_escape_string($_REQUEST['path']);
-		$bEnabled = sqlite_escape_string($_REQUEST['enabled']);
+		$iRowId = getreq('id', true, true, true);
+		$sHost  = getreq('host', true, true, true);
+		$iPort  = getreq('port', true, true, true);
+		$sUser  = getreq('user', true, true, true);
+		$sPass  = getreq('pass', true, true, true);
+		$sPath  = getreq('path', true, true, true);
+		$bEnabled = getreq('enabled') ? 1 : 0;
 		$sQuery = "UPDATE servers SET host='$sHost', port='$iPort', " .
-		          "user='$sUser', pass='$sPass', path='$sPath', enabled='$bEnabled' " .
+		          "user='$sUser', pass='$sPass', path='$sPath', enabled='$bEnabled', " .
 		          "updated=datetime('now')" .
 		          "WHERE rowid='$iRowId'";
-		sqlite_query($objSqlite, $sQuery);
+		sqlite_query_only($sQuery);
 		exit('OK');
 	case 'del':
+		$iRowId = getreq('id', true, true, true);
+		$sQuery = "DELETE FROM servers WHERE rowid='$iRowId'";
+		sqlite_query_only($sQuery);
 		exit('OK');
 	default:
-		$iPage = $_REQUEST['page'];
+		$iPage = getreq('page', true);
 		if (empty($iPage))
 			exit("Parameter 'page'");
-		$iRowsPerPage = $_REQUEST['rows'];
+		$iRowsPerPage = getreq('rows', true);
 		if (empty($iRowsPerPage))
 			exit("Parameter 'rows'");
-		$sSorting = trim($_REQUEST['sidx'] . " " . $_REQUEST['sord']);
+		$sSorting = trim(getreq('sidx') . " " . getreq('sord'));
 		
 		$sQuery = "SELECT count(rowid) FROM servers";
-		$objResult = sqlite_query($objSqlite, $sQuery, SQLITE_NUM, $sErrMsg);
-		if (!empty($sErrMsg))
-			exit($sErrMsg);
-		$arrColumns = sqlite_fetch_array($objResult);
-		$iTotal = $arrColumns[0];
+		$arrResults = sqlite_query_and_fetch_array($sQuery);
+		$iTotal = $arrResults[0];
 		$iTotalPages = ((int)($iTotal / $iRowsPerPage)) + 1;
 		if ($iTotal <= (($iPage - 1) * $iRowsPerPage))
 			$iPage = $iTotalPages;
@@ -64,8 +62,7 @@
 		if (!empty($sSorting))
 			$sQuery .= "ORDER BY $sSorting ";
 		$sQuery .= "LIMIT $iStart, $iRowsPerPage ";
-		$objResult = sqlite_query($objSqlite, $sQuery);
-		$arrResults = sqlite_fetch_all($objResult, SQLITE_ASSOC);
+		$arrResults = sqlite_query_and_fetch_all($sQuery);
 		$arrGrid = array (
 			'page'    => $iPage,
 			'total'   => $iTotalPages,
