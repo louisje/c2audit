@@ -1,15 +1,42 @@
 <?php
 	
-	require_once "constants.php";
+	require_once "common.php";
 	
-	$objSqlite = sqlite_open("$sDBDir/$sDBFile");
+	$objSqlite = sqlite_open($cfgDBPath);
 	if ($objSqlite == FALSE)
 		exit("Can not open data file.");
 	
 	switch(@$_REQUEST['oper']) {
 	case 'add':
+		$sHost = sqlite_escape_string($_REQUEST['host']);
+		$iPort = sqlite_escape_string($_REQUEST['port']);
+		$sUser = sqlite_escape_string($_REQUEST['user']);
+		$sPass = sqlite_escape_string($_REQUEST['pass']);
+		$sPath = sqlite_escape_string($_REQUEST['path']);
+		$bEnabled = sqlite_escape_string($_REQUEST['enabled']);
+		
+		$sQuery = "SELECT count(rowid) FROM servers WHERE host='$sHost' AND port='$iPort' AND user='$sUser'";
+		$arrResult = sqlite_query_and_fetch_array($sQuery);
+		if ($arrResult[0] > 0)
+			exit("Aready Exists");
+		
+		$sQuery = "INSERT INTO servers (host, port, user, pass, path, updated, enabled) " .
+		          "VALUES ('$sHost', '$iPort', '$sUser', '$sPass', '$sPath', datetime('now'), '$bEnabled')";
+		sqlite_query($objSqlite, $sQuery);
 		exit('OK');
 	case 'edit':
+		$iRowId = sqlite_escape_string($_REQUEST['id']);
+		$sHost  = sqlite_escape_string($_REQUEST['host']);
+		$iPort  = sqlite_escape_string($_REQUEST['port']);
+		$sUser  = sqlite_escape_string($_REQUEST['user']);
+		$sPass  = sqlite_escape_string($_REQUEST['pass']);
+		$sPath  = sqlite_escape_string($_REQUEST['path']);
+		$bEnabled = sqlite_escape_string($_REQUEST['enabled']);
+		$sQuery = "UPDATE servers SET host='$sHost', port='$iPort', " .
+		          "user='$sUser', pass='$sPass', path='$sPath', enabled='$bEnabled' " .
+		          "updated=datetime('now')" .
+		          "WHERE rowid='$iRowId'";
+		sqlite_query($objSqlite, $sQuery);
 		exit('OK');
 	case 'del':
 		exit('OK');

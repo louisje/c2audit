@@ -1,6 +1,6 @@
 <?php
 	
-	require_once "constants.php";
+	require_once "common.php";
 	
 	/**
 	 * Check The Enviroment
@@ -20,16 +20,15 @@
 	 * Setup Data File If Needed
 	 */
 	
-	if (!file_exists($sDBDir) || !is_dir($sDBDir)) {
-		exit("Data folder '$sDBDir' is not exists.");
+	if (!file_exists($cfgDBFolder) || !is_dir($cfgDBFolder)) {
+		exit("Data folder '$cfgDBFolder' is not exists.");
 	}
-	$sDBPath = "$sDBDir/$sDBFile";
-	if ((!file_exists($sDBPath) && is_writable($sDBDir)) || (file_exists($sDBPath) && filesize($sDBPath))) {
-		$objSqlite = sqlite_open($sDBPath);
+	if ((!file_exists($cfgDBPath) && is_writable($cfgDBFolder)) || (file_exists($cfgDBPath) && filesize($cfgDBPath))) {
+		$objSqlite = sqlite_open($cfgDBPath);
 		if ($objSqlite == FALSE)
-			exit("Can not open data file. ($sDBPath)");
-		if (filesize($sDBPath) == 0) {
-			$sQuery = file_get_contents($sSchemaFile);
+			exit("Can not open data file. ($cfgDBPath)");
+		if (filesize($cfgDBPath) == 0) {
+			$sQuery = file_get_contents($cfgSchemaFile);
 			sqlite_query($objSqlite, $sQuery, SQLITE_ASSOC, $sErrMsg);
 			if (!empty($sErrMsg))
 				exit($sErrMsg);
@@ -37,7 +36,7 @@
 		sqlite_close($objSqlite);
 	}
 	else {
-		exit("Data folder '$sDBDir' is not writable.");
+		exit("Data folder '$cfgDBFolder' is not writable.");
 	}
 	
 ?>

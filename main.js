@@ -128,7 +128,10 @@ page$ = {
         sortable:  true,
         editable:  true,
         edittype:  'checkbox',
-        formatter: 'checkbox'
+        formatter: 'checkbox',
+        editoptions: {
+          value: '1:0'
+        }
       }
     ],
     url:         'servers.php',
@@ -151,8 +154,8 @@ page$ = {
         url:               'servers.php',
         caption:           'Edit Server Info',
         width:             400,
-        top:               $(window).scrollTop() + 50, // $(this).offset().top - 50,
-        left:              200, // $(this).offset().left + $(this).width() + 20,
+        top:               $(window).scrollTop() + 50,
+        left:              150,
         modal:             false,
         jqModal:           true,
         closeAfterEdit:    true,
@@ -172,6 +175,30 @@ page$ = {
   },
   init: function() {
     $('#server_list').jqGrid(page$.grid_properties);
+    $('#server_list').jqGrid('navGrid', '#server_list_toppager', {
+      edit:   false,
+      add:    true,
+      del:    false,
+      search: false,
+      view:   false,
+      addtitle: 'Add A New Server'
+    }, { }, {
+      // 'add' properties
+      url:               'servers.php',
+      addCaption:        'Add A New Server',
+      width:             '400',
+      top:               $(window).scrollTop() + 50,
+      left:              150,
+      modal:             false,
+      jqModal:           true,
+      closeAfterAdd:     true,
+      closeOnEscape:     true,
+      reloadAfterSubmit: true,
+      recreateForm:      true,
+      beforeShowForm: function(formId) {
+      },
+      afterComplete: callbackAfterSubmitForm
+    });
   }
 };
 
