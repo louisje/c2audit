@@ -62,3 +62,38 @@
 			return sqlite_fetch_all($objResult);
 	}
 	
+	function mssql_connect_or_die($sServer, $sUser, $sPassword) {
+		$objMssql = mssql_connect($sServer, $sUser, $sPassword);
+		if (!$objMssql)
+			exit("Fail to connect MSSql server ($sUser:$sPassword@$sServer)");
+		return $objMssql;
+	}
+	
+	function mssql_query_or_die($objMssql, $sQuery) {
+		$objResult = mssql_query($sQuery, $objMssql);
+		if ($objResult == FALSE)
+			exit("Fail to query MSSql ($sQuery)");
+		return $objResult;
+	}
+	
+	function mssql_query_and_fetch_array($objMssql, $sQuery) {
+		
+		$objResult = mssql_query_or_die($objMssql, $sQuery);
+		if (mssql_num_rows($objResult) > 0)
+			return mssql_fetch_array($objResult, MSSQL_BOTH);
+		else
+			return NULL;
+	}
+	
+	function mssql_query_and_fetch_all($objMssql, $sQuery, $bFetch = TRUE) {
+		
+		$objResult = mssql_query_or_die($objMssql, $sQuery);
+		if ($bFetch) {
+			$arrDataRows = array();
+			while ($arrRow = mssql_fetch_array($objResult, MSSQL_BOTH)) {
+				array_push($arrDataRows, $arrRow);
+			}
+			return $arrDataRows;
+		}
+	}
+	

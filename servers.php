@@ -42,6 +42,9 @@
 		          "WHERE rowid='$iRowId'";
 		sqlite_query_only($sQuery);
 		exit('OK');
+		//$objMssql = mssql_connect_or_die("$sHost:$iPort", $sUser, $sPass);
+		//$arrRow = mssql_query_and_fetch_array($objMssql, "SELECT @@VERSION");
+		//exit($arrRow[0]);
 	case 'del':
 		$iRowId = getreq('id', true, true, true);
 		$sQuery = "DELETE FROM servers WHERE rowid='$iRowId'";
