@@ -274,7 +274,7 @@ var eventMapping = {
 
 var callbackAfterSubmitForm = function(response, postData, formId) {
   if (response.responseText != 'OK') {
-    if (response.responseText.length > 50)
+    if (response.responseText.length > 1000 || response.responseText.length == 0)
       alert('Error Occurs');
     else
       alert(response.responseText);

@@ -16,12 +16,11 @@
 		if ($arrResult[0] > 0)
 			exit("Aready Exists");
 		
-		// TODO: to check the server connectivitive
-		
 		$sQuery = "INSERT INTO servers (host, port, user, pass, path, updated, enabled) " .
 		          "VALUES ('$sHost', '$iPort', '$sUser', '$sPass', '$sPath', datetime('now'), '$bEnabled')";
 		sqlite_query_only($sQuery);
-		exit('OK');
+		$sVersion = mssql_query_version("$sHost:$iPort", $sUser, $sPass);
+		exit($sVersion);
 	case 'edit':
 		$iRowId = getreq('id', true, true, true);
 		$sHost  = getreq('host', true, true, true);
@@ -41,10 +40,8 @@
 		          "updated=datetime('now')" .
 		          "WHERE rowid='$iRowId'";
 		sqlite_query_only($sQuery);
-		exit('OK');
-		//$objMssql = mssql_connect_or_die("$sHost:$iPort", $sUser, $sPass);
-		//$arrRow = mssql_query_and_fetch_array($objMssql, "SELECT @@VERSION");
-		//exit($arrRow[0]);
+		$sVersion = mssql_query_version("$sHost:$iPort", $sUser, $sPass);
+		exit($sVersion);
 	case 'del':
 		$iRowId = getreq('id', true, true, true);
 		$sQuery = "DELETE FROM servers WHERE rowid='$iRowId'";

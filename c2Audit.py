@@ -1,7 +1,7 @@
 import sys
 import pymssql
 import syslog
-auditFilePath = 'c:\ossim'
+auditFilePath = 'e:\ossim'
 auditUser = "sa"
 auditPassword = "launchteltel"
 auditDatabase = "master"
@@ -35,6 +35,7 @@ def auditTurnOff(_cursor,_ID):
 	return 0;
 	
 def enableNewAudit(_cursor,_filename):
+	print _filename;
 	sql ="declare @rc int,@traceid int;exec @rc = sp_trace_create @traceid output,0,\""+_filename+"\";select @rc,@traceid,'"+_filename+"'"
 	_cursor.execute(sql);
 	row=_cursor.fetchone()
@@ -145,7 +146,7 @@ if oldAuditFilename =="NoFile":
 	print "no old file"
 	conn.close();
 	sys.exit(-1)
-rc = getTraceTable(cur,oldAuditFilename+".trc")
+rc = getTraceTable(cur,oldAuditFilename)
 #logFile = open(auditLogFilename,'w+')
 for rec in rc:
 	recLine = "[C2Audit]";

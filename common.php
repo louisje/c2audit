@@ -62,8 +62,14 @@
 			return sqlite_fetch_all($objResult);
 	}
 	
+	function mssql_query_version($sServer, $sUser, $sPass) {
+		$objMssql = mssql_connect_or_die($sServer, $sUser, $sPass);
+		$arrRow = mssql_query_and_fetch_array($objMssql, "SELECT @@VERSION");
+		return isset($arrRow[0]) ? $arrRow[0] : NULL;
+	}
+	
 	function mssql_connect_or_die($sServer, $sUser, $sPassword) {
-		$objMssql = mssql_connect($sServer, $sUser, $sPassword);
+		$objMssql = @mssql_connect($sServer, $sUser, $sPassword);
 		if (!$objMssql)
 			exit("Fail to connect MSSql server ($sUser:$sPassword@$sServer)");
 		return $objMssql;
