@@ -273,8 +273,10 @@ var eventMapping = {
 };
 
 var callbackAfterSubmitForm = function(response, postData, formId) {
-  if (response.responseText != 'OK') {
-    if (response.responseText.length > 1000 || response.responseText.length == 0)
+  var text = response.responseText.toString();
+  var length = text.length;
+  if (text != 'OK') {
+    if (length > 1000 || length == 0)
       alert('Error Occurs');
     else
       alert(response.responseText);
@@ -661,6 +663,44 @@ page$ = {
       closeOnEscape:     true,
       reloadAfterSubmit: true,
       afterComplete:     callbackAfterSubmitForm,
+    });
+    $('#server_list').jqGrid('navButtonAdd', '#server_list_toppager', {
+      caption:    '',
+      title:      'Trigger Trace',
+      buttonicon: 'ui-icon-play',
+      onClickButton: function() {
+        var rowId = $(this).jqGrid('getGridParam', 'selrow');
+        if (rowId == null) {
+          alert('You have to select one row');
+          return;
+        }
+        var params = {
+          'oper': 'trace',
+          'id':   rowId
+        };
+        $.post('servers.php', params, function(resp) {
+          alert(resp);
+        }, 'text');
+      }
+    });
+    $('#server_list').jqGrid('navButtonAdd', '#server_list_toppager', {
+      caption:    '',
+      title:      'Connection Test',
+      buttonicon: 'ui-icon-check',
+      onClickButton: function() {
+        var rowId = $(this).jqGrid('getGridParam', 'selrow');
+        if (rowId == null) {
+          alert('You have to select one row');
+          return;
+        }
+        var params = {
+          'oper': 'test',
+          'id':   rowId
+        };
+        $.post('servers.php', params, function(resp) {
+          alert(resp);
+        }, 'text');
+      }
     });
   }
 };

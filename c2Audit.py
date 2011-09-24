@@ -37,6 +37,7 @@ def auditTurnOff(_cursor,_ID):
 def enableNewAudit(_cursor,_filename):
 	print _filename;
 	sql ="declare @rc int,@traceid int;exec @rc = sp_trace_create @traceid output,0,\""+_filename+"\";select @rc,@traceid,'"+_filename+"'"
+	print sql;
 	_cursor.execute(sql);
 	row=_cursor.fetchone()
 	if row[0] > 0:

@@ -19,8 +19,7 @@
 		$sQuery = "INSERT INTO servers (host, port, user, pass, path, updated, enabled) " .
 		          "VALUES ('$sHost', '$iPort', '$sUser', '$sPass', '$sPath', datetime('now'), '$bEnabled')";
 		sqlite_query_only($sQuery);
-		$sVersion = mssql_query_version("$sHost:$iPort", $sUser, $sPass);
-		exit($sVersion);
+		exit('OK');
 	case 'edit':
 		$iRowId = getreq('id', true, true, true);
 		$sHost  = getreq('host', true, true, true);
@@ -40,13 +39,70 @@
 		          "updated=datetime('now')" .
 		          "WHERE rowid='$iRowId'";
 		sqlite_query_only($sQuery);
-		$sVersion = mssql_query_version("$sHost:$iPort", $sUser, $sPass);
-		exit($sVersion);
+		exit('OK');
 	case 'del':
 		$iRowId = getreq('id', true, true, true);
 		$sQuery = "DELETE FROM servers WHERE rowid='$iRowId'";
 		sqlite_query_only($sQuery);
 		exit('OK');
+	case 'test':
+		$iRowId = getreq('id', true, true, true);
+		
+		$sQuery = "SELECT rowid, host, port, user, pass FROM servers WHERE rowid='$iRowId'";
+		$arrRow = sqlite_query_and_fetch_array($sQuery);
+		$sHost = $arrRow['host'];
+		$iPort = $arrRow['port'];
+		$sUser = $arrRow['user'];
+		$sPass = $arrRow['pass'];
+		
+		$sVersion = mssql_query_version("$sHost:$iPort", $sUser, $sPass);
+		exit($sVersion);
+	case 'trace':
+		$iRowId = getreq('id', true, true, true);
+		
+		$sQuery = "SELECT rowid, host, port, user, pass, path, enabled FROM servers WHERE rowid='$iRowId'";
+		$arrRow = sqlite_query_and_fetch_array($sQuery);
+		$sHost = $arrRow['host'];
+		$iPort = $arrRow['port'];
+		$sUser = $arrRow['user'];
+		$sPass = $arrRow['pass'];
+		$sPath = $arrRow['path'];
+		$iEnabled = $arrRow['enabled'];
+		if ($iEnabled == 0)
+			exit('Please enable it first');
+		
+		
+		$sQuery = "SELECT eventid, columnid, enabled FROM trace WHERE serverid='$iRowId'";
+		$arrSettings = sqlite_query_and_fetch_all($sQuery);
+		if ($arrSettings == NULL || count($arrSettings) == 0)
+			exit('No trace properties');
+		
+		$objMssql = mssql_connect_or_die("$sHost:$iPort", $sUser, $sPass);
+		$arrRow = audit_trace_getinfo($objMssql);
+		if (count($arrRow) > 0) {
+			$iOldAuditId = $arrRow[0];
+			$sOldAuditFilename = $arrRow[1];
+			//audit_turn_off($objMssql, $iOldAuditId);
+		} else {
+			$sOldAuditFilename = "NoFile";
+			$iOldAuditId = -1;
+		}
+		$sNewAuditFilename = audit_new_filename($objMssql, $sPath);
+		$iNewAuditId = audit_new_enable($objMssql, $sNewAuditFilename);
+		audit_set_event_type($objMssql, $iNewAuditId, $arrSettings);
+		audit_turn_on($objMssql, $iNewAuditId);
+		if ($sOldAuditFilename == "NoFile")
+			exit("No old file");
+		$arrTraceTable = audit_get_trace_table($objMssql, $sOldAuditFilename);
+		echo count($arrTraceTable) . " lines log fetched\n";
+		foreach ($arrTraceTable as $arrRow) {
+			$sLog = "[C2Audit]";
+			foreach ($arrRow as $sField) {
+				$sLog .= $sField . "||";
+			}
+			syslog(LOG_INFO, $sLog);
+		}
+		exit('done');
 	default:
 		$iPage = getreq('page', true);
 		$iRowsPerPage = getreq('rows', true);

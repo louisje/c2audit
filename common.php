@@ -30,6 +30,10 @@
 		}
 	}
 	
+	/**
+	 * SQLite Functions
+	 */
+	
 	function sqlite_query_only($sQuery) {
 		sqlite_query_and_fetch_all($sQuery, FALSE);
 	}
@@ -39,7 +43,7 @@
 		if (count($arrDataRows) > 0)
 			return $arrDataRows[0];
 		else
-			return NULL;
+			return array();
 	}
 	
 	function sqlite_query_and_fetch_all($sQuery, $bFetch = TRUE) {
@@ -62,6 +66,10 @@
 			return sqlite_fetch_all($objResult);
 	}
 	
+	/**
+	 * MSSql Functions
+	 */
+	
 	function mssql_query_version($sServer, $sUser, $sPass) {
 		$objMssql = mssql_connect_or_die($sServer, $sUser, $sPass);
 		$arrRow = mssql_query_and_fetch_array($objMssql, "SELECT @@VERSION");
@@ -76,9 +84,9 @@
 	}
 	
 	function mssql_query_or_die($objMssql, $sQuery) {
-		$objResult = mssql_query($sQuery, $objMssql);
+		$objResult = @mssql_query($sQuery, $objMssql);
 		if ($objResult == FALSE)
-			exit("Fail to query MSSql ($sQuery)");
+			exit("Fail to query MSSql ($sQuery):\n" . mssql_get_last_message());
 		return $objResult;
 	}
 	
@@ -88,7 +96,7 @@
 		if (mssql_num_rows($objResult) > 0)
 			return mssql_fetch_array($objResult, MSSQL_BOTH);
 		else
-			return NULL;
+			return array();
 	}
 	
 	function mssql_query_and_fetch_all($objMssql, $sQuery, $bFetch = TRUE) {
@@ -101,5 +109,61 @@
 			}
 			return $arrDataRows;
 		}
+	}
+	
+	function mssql_escape($data) {
+		if(is_numeric($data))
+			return $data;
+		// Qoo: escape
+		return $data;
+	}
+	
+	/**
+	 * Audit Functions
+	 */
+	
+	function audit_trace_getinfo($objMssql) {
+		return mssql_query_and_fetch_array($objMssql, "SELECT traceid, CONVERT(nvarchar(1000),value) as filename FROM ::fn_trace_getinfo(default) WHERE property=2");
+	}
+	
+	function audit_turn_off($objMssql, $iAuditId) {
+		mssql_query_or_die($objMssql, "EXEC sp_trace_setstatus $iAuditId, 0");
+		mssql_query_or_die($objMssql, "EXEC sp_trace_setstatus $iAuditId, 2");
+	}
+	
+	function audit_new_filename($objMssql, $sPath) {
+		
+		$sQuery = "SELECT '" . mssql_escape($sPath) . "'+REPLACE(REPLACE(REPLACE(CONVERT(VARCHAR(19), getdate(), 120),':',''),' ',''),'-','') ";
+		$arr = mssql_query_and_fetch_array($objMssql, $sQuery);
+		return $arr[0];
+	}
+	
+	function audit_new_enable($objMssql, $sNewFilename) {
+		//$sQuery = "DECLARE @rc int, @traceid int, @tracefile nvarchar(256); set @tracefile = '" . mssql_escape($sNewFilename) . "'; EXEC @rc = sp_trace_create @traceid OUTPUT, 0, @tracefile; SELECT @rc, @traceid, @tracefile";
+		$sQuery = "DECLARE @rc int, @traceid int; EXEC @rc = sp_trace_create @traceid OUTPUT, 0, N'$sNewFilename'; SELECT @traceid, @rc";
+		//echo $sQuery . "\n";
+		$arr = mssql_query_and_fetch_array($objMssql, $sQuery);
+		return $arr[0];
+	}
+	
+	function audit_set_event_type($objMssql, $iAuditId, $arrSettings) {
+		$sQuery = "";
+		foreach ($arrSettings as $arrRow) {
+			$iEventId = $arrRow['eventid'];
+			$iColumnId = $arrRow['columnid'];
+			$iEnabled = $arrRow['enabled'];
+			$sQuery .= "EXEC sp_trace_setevent $iAuditId, $iEventId, $iColumnId, $iEnabled; ";
+		}
+		mssql_query_or_die($objMssql, $sQuery);
+	}
+	
+	function audit_turn_on($objMssql, $iAuditId) {
+		$sQuery = "DECLARE @rc int; EXEC @rc = sp_trace_setstatus $iAuditId, 1; SELECT @rc";
+		mssql_query_or_die($objMssql, $sQuery);
+	}
+	
+	function audit_get_trace_table($objMssql, $sFilename) {
+		$sQuery = "SELECT CAST(textdata as text) as textdata, applicationname, loginname, duration, starttime, endtime, cpu, ntusername, hostname FROM ::fn_trace_gettable('" . mssql_escape($sFilename) . "', default)";
+		return mssql_query_and_fetch_all($objMssql, $sQuery);
 	}
 	
