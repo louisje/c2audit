@@ -123,7 +123,7 @@
 	 */
 	
 	function audit_trace_getinfo($objMssql) {
-		return mssql_query_and_fetch_array($objMssql, "SELECT traceid, CONVERT(nvarchar(1000),value) as filename FROM ::fn_trace_getinfo(default) WHERE property=2");
+		return mssql_query_and_fetch_all($objMssql, "SELECT traceid, CONVERT(nvarchar(1000),value) as filename FROM ::fn_trace_getinfo(0) WHERE property=2 AND traceid!=1");
 	}
 	
 	function audit_turn_off($objMssql, $iAuditId) {
@@ -139,9 +139,7 @@
 	}
 	
 	function audit_new_enable($objMssql, $sNewFilename) {
-		//$sQuery = "DECLARE @rc int, @traceid int, @tracefile nvarchar(256); set @tracefile = '" . mssql_escape($sNewFilename) . "'; EXEC @rc = sp_trace_create @traceid OUTPUT, 0, @tracefile; SELECT @rc, @traceid, @tracefile";
 		$sQuery = "DECLARE @rc int, @traceid int; EXEC @rc = sp_trace_create @traceid OUTPUT, 0, N'$sNewFilename'; SELECT @traceid, @rc";
-		//echo $sQuery . "\n";
 		$arr = mssql_query_and_fetch_array($objMssql, $sQuery);
 		return $arr[0];
 	}

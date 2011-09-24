@@ -78,29 +78,26 @@
 			exit('No trace properties');
 		
 		$objMssql = mssql_connect_or_die("$sHost:$iPort", $sUser, $sPass);
-		$arrRow = audit_trace_getinfo($objMssql);
-		if (count($arrRow) > 0) {
-			$iOldAuditId = $arrRow[0];
-			$sOldAuditFilename = $arrRow[1];
-			//audit_turn_off($objMssql, $iOldAuditId);
-		} else {
-			$sOldAuditFilename = "NoFile";
-			$iOldAuditId = -1;
+		$arrOldAudits = audit_trace_getinfo($objMssql);
+		foreach ($arrOldAudits as $arrAudit) {
+			audit_turn_off($objMssql, $arrAudit['traceid']);
 		}
 		$sNewAuditFilename = audit_new_filename($objMssql, $sPath);
 		$iNewAuditId = audit_new_enable($objMssql, $sNewAuditFilename);
 		audit_set_event_type($objMssql, $iNewAuditId, $arrSettings);
 		audit_turn_on($objMssql, $iNewAuditId);
-		if ($sOldAuditFilename == "NoFile")
+		if (empty($arrOldAudits))
 			exit("No old file");
-		$arrTraceTable = audit_get_trace_table($objMssql, $sOldAuditFilename);
-		echo count($arrTraceTable) . " lines log fetched\n";
-		foreach ($arrTraceTable as $arrRow) {
-			$sLog = "[C2Audit]";
-			foreach ($arrRow as $sField) {
-				$sLog .= $sField . "||";
+		foreach ($arrOldAudits as $arrAudit) {
+			$arrTraceTable = audit_get_trace_table($objMssql, $arrAudit['filename']);
+			echo count($arrTraceTable) . " lines log fetched\n";
+			foreach ($arrTraceTable as $arrRow) {
+				$sLog = "[C2Audit]";
+				foreach ($arrRow as $sField) {
+					$sLog .= $sField . "||";
+				}
+				syslog(LOG_INFO, $sLog);
 			}
-			syslog(LOG_INFO, $sLog);
 		}
 		exit('done');
 	default:

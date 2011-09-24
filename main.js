@@ -606,6 +606,7 @@ page$ = {
       afterComplete:     callbackAfterSubmitForm,
       beforeShowForm: function(formId) {
         $('#tr_serverid').hide();
+        $('#enabled', formId).attr('checked', true);
       }
     }, {
       // 'del' properties
